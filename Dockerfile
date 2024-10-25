@@ -1,25 +1,21 @@
-FROM ruby:2.3.3
+FROM ruby:2.3.8-alpine3.8
 
-RUN printf "deb http://archive.debian.org/debian/ jessie main\\n \
-            deb-src http://archive.debian.org/debian/ jessie main\\n \
-            deb http://security.debian.org jessie/updates main\\n \
-            deb-src http://security.debian.org jessie/updates main" > /etc/apt/sources.list
-
-RUN apt-get update && \
-    apt-get install -y net-tools
+RUN apk --update add build-base nodejs tzdata mysql-dev mysql-client libxslt-dev libxml2-dev imagemagick net-tools
 
 ENV APP_HOME /app
 ENV HOME /root
 
 RUN mkdir $APP_HOME
-COPY . $APP_HOME
+COPY Gemfile $APP_HOME
+COPY Gemfile.lock $APP_HOME
 
 WORKDIR $APP_HOME
 
-RUN apt-get install nodejs -y && \
-    gem install bundler rake && \
-    bundle install && \
-    rake assets:precompile
+RUN gem install bundler:2.3.26 rake nokogiri:1.8.2 && \
+    bundle install --full-index
+
+COPY . $APP_HOME
+RUN bundle exec rake assets:precompile
 
 EXPOSE 3000
 CMD ["rails", "s", "-b", "0.0.0.0"]

@@ -18,12 +18,14 @@ class LoginController < ApplicationController
   def destroy
     session[:user] = nil
     session[:password] = nil
+    session[:connected] = nil
     redirect_to controller: :login, action: :index
   end
 
   private
   def verify_login
-    redirect_to controller: :dashboard, action: :index if session[:user].present?
+    logger.info "SESSION CONNECTED? #{session[:connected]}"
+    redirect_to controller: :dashboard, action: :index if session[:connected] == true
   end
 
 end
